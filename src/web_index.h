@@ -233,6 +233,8 @@ const char index_html[] PROGMEM = R"rawliteral(
                   <button class="danger" onclick="debugCmd('halt')" title="Halt CPU" style="padding:8px 16px; font-size:0.9rem;" data-i18n="btn_halt">&#10074;&#10074; HALT</button>
                   <button class="primary" onclick="debugCmd('resume')" title="Resume CPU" style="padding:8px 16px; font-size:0.9rem;" data-i18n="btn_resume">&#9654; RUN</button>
                   <button onclick="debugCmd('step')" title="Step Into" style="background:#444; border-color:#29b6f6; color:#29b6f6;" data-i18n="btn_step">&#8618; STEP</button>
+                  <button onclick="cmd('init'); setTimeout(refreshDebug, 500);" title="Reset Connection" style="padding:6px 10px; font-size:0.8rem; background:#333; border:1px solid #555;">INIT</button>
+                  <button onclick="getChipInfo()" title="Check Connection ID" style="padding:6px 10px; font-size:0.8rem; background:#333; border:1px solid #555;">INFO</button>
               </div>
               <div style="flex:1;"></div>
                 <div style="width:1px; height:30px; background:#444; margin:0 10px;"></div>
