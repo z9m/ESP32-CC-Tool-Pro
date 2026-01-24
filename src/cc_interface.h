@@ -25,7 +25,7 @@ class CC_interface
     uint8_t erase_chip();
     
     // --- Memory Access ---
-    void read_code_memory(uint16_t address, uint16_t len, uint8_t buffer[]);
+    void read_code_memory(uint32_t address, uint16_t len, uint8_t buffer[]);
     void read_xdata_memory(uint16_t address, uint16_t len, uint8_t buffer[]);
     void write_xdata_memory(uint16_t address, uint16_t len, uint8_t buffer[]);
     

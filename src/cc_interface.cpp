@@ -124,16 +124,44 @@ uint8_t CC_interface::erase_chip()
   return 0; // Success
 }
 
-void CC_interface::read_code_memory(uint16_t address, uint16_t len, uint8_t buffer[])
+void CC_interface::read_code_memory(uint32_t address, uint16_t len, uint8_t buffer[])
 {
+  // 1. Bank berechnen (32KB Blöcke)
+  // Bank 0: 0x00000 - 0x07FFF (Physikalisch)
+  // Bank 1: 0x08000 - 0x0FFFF (Physikalisch) -> Mapped auf 0x8000
+  // Bank 2: 0x10000 - 0x17FFF (Physikalisch) -> Mapped auf 0x8000
+  // ...
+  uint8_t bank = address / 32768;      // Ganzzahl-Division durch 32k
+  uint16_t offset = address % 32768;   // Rest ist der Offset im 32k Block
+  uint16_t virtual_addr;
+
+  if (bank == 0) {
+    // Bank 0 liegt beim 8051 immer fest im unteren Bereich (0x0000 - 0x7FFF)
+    virtual_addr = offset;
+    // Wir müssen MEMCTR hier nicht zwingend setzen, da Bank 0 immer sichtbar ist,
+    // aber wir setzen MEMCTR auf 1, damit der obere Bereich definiert ist (Best Practice)
+    opcode(0x75, 0xC7, 0x01); 
+  } else {
+    // Alle anderen Banks (1-7) werden in das obere Fenster (0x8000 - 0xFFFF) eingeblendet
+    virtual_addr = 0x8000 + offset;
+    
+    // Bank auswählen: MOV MEMCTR, #bank
+    // Opcode 0x75 = MOV direct, #data. 0xC7 = Adresse von MEMCTR.
+    opcode(0x75, 0xC7, bank); 
+  }
+
+  // 2. DPTR setzen (Data Pointer)
+  opcode(0x90, virtual_addr >> 8, virtual_addr);
+
+  // 3. Lesen (Schleife wie vorher)
   int last_callback = 0;
-  opcode(0x75, 0xc7, 0x01); // MEMCTR
-  opcode(0x90, address >> 8, address); // MOV DPTR
   for (int i = 0; i < len; i++)
   {
     opcode(0xe4); // CLR A
-    buffer[i] = opcode(0x93); // MOVC A, @A+DPTR
+    buffer[i] = opcode(0x93); // MOVC A, @A+DPTR (Liest Byte aus Flash)
     opcode(0xa3); // INC DPTR
+    
+    // Fortschrittsanzeige Update
     if (i - last_callback > 100)
     {
       last_callback = i;

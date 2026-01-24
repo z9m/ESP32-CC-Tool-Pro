@@ -90,7 +90,7 @@ void task_Dump(void * parameter) {
     while(addr < size) {
         uint32_t remaining = size - addr;
         uint16_t len = (remaining < CHUNK_SIZE) ? remaining : CHUNK_SIZE;
-        cc.read_code_memory((uint16_t)addr, len, buffer);
+        cc.read_code_memory(addr, len, buffer);
         dumpFile.write(buffer, len);
         addr += len;
         if(addr % 2048 == 0) updateStatus("BUSY: [1/2] Reading @ " + addrStr(addr), (addr * 50) / size);
@@ -114,7 +114,7 @@ void task_Dump(void * parameter) {
         uint16_t len = (remaining < CHUNK_SIZE) ? remaining : CHUNK_SIZE;
         
         // Read Chip (Actual)
-        cc.read_code_memory((uint16_t)addr, len, buffer);
+        cc.read_code_memory(addr, len, buffer);
         // Read File (Expected)
         dumpFile.read(fileBuf, len);
         
