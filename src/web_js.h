@@ -390,29 +390,27 @@ function disassembleBlock(startAddr, bytes) {
       document.getElementById('pinoutContainer').innerHTML = html;
   }
 
-  // --- LOGGING SYSTEM (DOM BASIERT) ---
+  // --- LOGGING SYSTEM (DOM BASED) ---
   function log(msg) {
       const now = new Date();
       const timeSimple = now.toLocaleTimeString(); 
       const timeDetail = timeSimple + "." + String(now.getMilliseconds()).padStart(3, '0');
 
-      // Helper zum Anhängen einer Zeile
+      // Helper to append a line
       const appendLine = (parentId, text, isBusyUpdate) => {
           const el = document.getElementById(parentId);
           if(!el) return;
 
-          // Prüfen, ob die letzte Zeile ein "BUSY" Update war
+          // Check if the last line was a "BUSY" update
           const lastDiv = el.lastElementChild;
           
-          // Fall: Letzte Zeile aktualisieren (um Spam zu vermeiden)
           if (isBusyUpdate && lastDiv && lastDiv.innerText.includes("BUSY")) {
               lastDiv.innerText = text;
           } 
-          // Fall: Neue Zeile anfügen
           else {
               const div = document.createElement('div');
               div.innerText = text;
-              div.style.borderBottom = "1px solid #111"; // Leichte Trennlinie zur Lesbarkeit
+              div.style.borderBottom = "1px solid #111"; 
               div.style.padding = "2px 0";
               el.appendChild(div);
           }
@@ -421,11 +419,14 @@ function disassembleBlock(startAddr, bytes) {
           el.scrollTop = el.scrollHeight;
       };
 
-      // 1. Kleines Log (Flasher Tab)
-      appendLine('log', `[${timeSimple}] ${msg}`, msg.includes("BUSY"));
+      // 1. Small Log (Flasher Tab) - FIX: Hide Debug Info
+      // We only show the message here if it does NOT start with "DBG:"
+      if (!msg.startsWith("DBG:")) {
+          appendLine('log', `[${timeSimple}] ${msg}`, msg.includes("BUSY"));
+      }
 
-      // 2. Großes Log (Console Tab)
-      appendLine('log_mirror', `[${timeDetail}] ${msg}`, false); // false = hier wollen wir alles sehen, auch Zwischenschritte
+      // 2. Large Log (Console Tab) - Here we show EVERYTHING
+      appendLine('log_mirror', `[${timeDetail}] ${msg}`, false); 
   }
   
   function clearLog(target) { 
