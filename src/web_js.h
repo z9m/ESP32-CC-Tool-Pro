@@ -521,6 +521,14 @@ function disassembleBlock(startAddr, bytes) {
         }
     }).catch(e=>{ 
         document.getElementById('infoTableContainer').innerHTML = "<p style='color:#ff5252'>Keine Antwort.</p>";
+        
+        // set Header status to OFFLINE
+        let badge = document.getElementById('connStatus');
+        if(badge) { 
+            badge.innerText = "OFFLINE"; 
+            badge.style.background = "#555"; // grey/dark
+        }
+        
         toggleAllButtons(false); 
     });
   }
