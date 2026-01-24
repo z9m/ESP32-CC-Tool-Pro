@@ -52,7 +52,7 @@ You need a standard ESP32 development board. Connect the TI CC-Chip (Target) as 
 
 1.  **Clone this repository:**
     ```bash
-    [git clone [https://github.com/DEIN_GITHUB_NAME/ESP32-CC-Tool-Pro.git](https://github.com/DEIN_GITHUB_NAME/ESP32-CC-Tool-Pro.git)](https://github.com/z9m/ESP32-CC-Tool-Pro.git)
+    git clone [https://github.com/z9m/ESP32-CC-Tool-Pro.git](https://github.com/z9m/ESP32-CC-Tool-Pro.git)
     ```
 2.  **Open Project:** Open the folder in VS Code with the **PlatformIO** extension installed.
 3.  **Flash ESP32:** Connect your ESP32 via USB and click the "Upload" arrow in PlatformIO.
