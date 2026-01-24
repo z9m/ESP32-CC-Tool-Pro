@@ -10,7 +10,11 @@ This tool allows you to flash, verify, dump, and debug TI CC-series chips (like 
 
 > **Note:** This project is a heavily modified and expanded fork of the [ESP_CC_Flasher](https://github.com/atc1441/ESP_CC_Flasher) by [atc1441](https://github.com/atc1441).
 
-![Web Interface Screenshot](image_343d3a.png)
+<p align="center">
+  <img src="assets/flasher-tab.png" width="32%" alt="Flasher Tab" />
+  <img src="assets/debugger-tab.png" width="32%" alt="Debugger Tab" />
+  <img src="assets/log-tab.png" width="32%" alt="Log Tab" />
+</p>
 
 ## ✨ Features
 
