@@ -501,8 +501,14 @@ void CC_interface::debug_halt()
 
 void CC_interface::debug_resume()
 {
+  // Short delay to allow signals to stabilize before sending the command
+  delay(10); 
+
   // 0x4C = CMD_RESUME
   send_cc_cmdS(0x4C);
+  
+  // Wait again to avoid reading status immediately during a potential reset/boot phase
+  delay(10);
 }
 
 void CC_interface::debug_step()

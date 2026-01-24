@@ -242,7 +242,12 @@ void setup() {
     // Query Status (Running vs Halted)
     server.on("/api/debug/status", HTTP_GET, [](AsyncWebServerRequest *r){
         uint8_t s = cc.get_status_byte();
-        bool halted = (s & 0x20); // Bit 5
+        
+        // FIX: 0xFF usually indicates an "Open Bus" (Chip Reset, cable disconnected, or Watchdog Reboot).
+        // Although Bit 5 (0x20) is set in 0xFF, it is not a valid HALT state.
+        // We force "halted = false" if s == 0xFF to prevent reading garbage registers.
+        bool halted = (s & 0x20) && (s != 0xFF); 
+
         String json = "{\"halted\":" + String(halted?"true":"false") + ", \"raw\":\"0x" + String(s, HEX) + "\"}";
         r->send(200, "application/json", json);
     });

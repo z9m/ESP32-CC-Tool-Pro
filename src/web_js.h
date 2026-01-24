@@ -604,7 +604,7 @@ function disassembleBlock(startAddr, bytes) {
 
   function startDebugPoll() { refreshDebug(); if(!debugTimer) debugTimer = setInterval(refreshDebug, 1500); }
   function stopDebugPoll() { if(debugTimer) { clearInterval(debugTimer); debugTimer = null; } }
-  function debugCmd(c) { fetch('/api/debug/'+c).then(r=>r.text()).then(t=>{ log("DBG: "+t); setTimeout(refreshDebug, 100); }); }
+  function debugCmd(c) { fetch('/api/debug/'+c).then(r=>r.text()).then(t=>{log("DBG: "+t); setTimeout(refreshDebug, 400); }); }
   
   function refreshDebug() {
       fetch('/api/debug/status').then(r=>r.json()).then(s => {
