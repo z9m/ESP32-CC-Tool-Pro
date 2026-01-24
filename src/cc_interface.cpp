@@ -557,28 +557,46 @@ void CC_interface::disable_hw_breakpoint()
   write_xdata_memory(0xC768, 1, &ctrl);
 }
 
-// Reads the Program Counter via Stack-Trick
+// Reads the Program Counter via Stack-Trick (Non-destructive)
 uint16_t CC_interface::read_pc() {
     // 1. Save Stack Pointer (SP)
     uint8_t sp_orig = read_sfr(0x81); 
 
-    // 2. Inject LCALL (Long Call). 
-    // Opcode 0x12 = LCALL. Target 0xF000 is irrelevant.
+    // 2. Inject LCALL 0xF000. 
+    // This pushes the current PC onto the stack and sets PC to 0xF000.
     opcode(0x12, 0xF0, 0x00); 
 
-    // 3. Read Stack
-    // 8051 Stack grows upwards.
-    uint8_t pc_high = 0;
-    uint8_t pc_low = 0;
-    
-    // Read directly from XDATA (Stack/IDATA is mapped there)
-    read_xdata_memory((uint16_t)(sp_orig + 0), 1, &pc_high); 
-    read_xdata_memory((uint16_t)(sp_orig - 1), 1, &pc_low);
+    // Helper Variable
+    uint8_t pc_parts[2] = {0, 0}; // [0]=High, [1]=Low
 
-    // 4. Restore SP
+    // 3. Retrieve original PC from Internal Stack (IDATA)
+    // High Byte is at SP+2, Low Byte at SP+1
+    for(int i=0; i<2; i++) {
+        uint8_t target_idata_addr = sp_orig + 2 - i; 
+        
+        // A) Move IDATA value to R0
+        opcode(0x78, target_idata_addr); // MOV R0, #addr
+        
+        // B) Move value from IDATA (@R0) to Accumulator (A)
+        opcode(0xE6); // MOV A, @R0 
+        
+        // C) Move A to XDATA 0xF000 (our scratchpad)
+        opcode(0x90, 0xF0, 0x00); // MOV DPTR, #0xF000
+        opcode(0xF0);             // MOVX @DPTR, A
+        
+        // D) Read from XDATA
+        read_xdata_memory(0xF000, 1, &pc_parts[i]);
+    }
+
+    // 4. Restore Stack Pointer
     opcode(0x75, 0x81, sp_orig); // MOV SP, #orig
 
-    return (uint16_t)(pc_high << 8) | pc_low;
+    // 5. RESTORE PROGRAM COUNTER (The Fix!)
+    // We must jump back to where we came from, otherwise PC stays at 0xF000.
+    // Opcode 0x02 = LJMP (Long Jump)
+    opcode(0x02, pc_parts[0], pc_parts[1]);
+
+    return (uint16_t)(pc_parts[0] << 8) | pc_parts[1];
 }
 
 // Reads R0-R7 based on the current Register Bank
