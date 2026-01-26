@@ -3,6 +3,7 @@
 ![License](https://img.shields.io/badge/license-GPLv3-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-ESP32-green.svg)
 ![Status](https://img.shields.io/badge/status-stable-success.svg)
+![AI Support](https://img.shields.io/badge/AI-Gemini-8E75B2.svg)
 
 **A fully web-based Flasher and Debugger for Texas Instruments CCxxxx Microcontrollers (8051 core), powered by an ESP32.**
 
@@ -56,7 +57,7 @@ You need a standard ESP32 development board. Connect the TI CC-Chip (Target) as 
 
 1.  **Clone this repository:**
     ```bash
-    git clone https://github.com/z9m/ESP32-CC-Tool-Pro.git
+    git clone [https://github.com/z9m/ESP32-CC-Tool-Pro.git](https://github.com/z9m/ESP32-CC-Tool-Pro.git)
     ```
 2.  **Open Project:** Open the folder in VS Code with the **PlatformIO** extension installed.
 3.  **Flash ESP32:** Connect your ESP32 via USB and click the "Upload" arrow in PlatformIO.
@@ -87,7 +88,10 @@ The tool implements the standard Texas Instruments Debug Interface (2-wire) and 
 
 This project is licensed under the **GNU General Public License v3.0 (GPLv3)** - see the [LICENSE](LICENSE) file for details.
 
-Based on work by [atc1441](https://github.com/atc1441/ESP_CC_Flasher), licensed under GPLv3.
+## 🤝 Acknowledgments
+
+* **Original Author:** Based on the excellent work by [atc1441](https://github.com/atc1441/ESP_CC_Flasher).
+* **AI Assistance:** Code refactoring, documentation, and optimization supported by **Gemini AI**.
 
 ---
 *Disclaimer: This tool is intended for educational and development purposes. Use with care on production devices.*
