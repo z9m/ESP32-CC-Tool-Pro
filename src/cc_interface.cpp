@@ -471,15 +471,20 @@ uint32_t CC_interface::detect_flash_size() {
     uint8_t buf_8k[8];
     uint8_t buf_16k[8];
     
-    read_xdata_memory(0x0000, 8, buf_0);
-    read_xdata_memory(0x2000, 8, buf_8k);  
-    read_xdata_memory(0x4000, 8, buf_16k); 
+    // FIX: Use read_code_memory (Flash) instead of read_xdata_memory (RAM)
+    // because RAM on CC2531 is only 8KB and will alias/wrap around, 
+    // causing false detection of 8KB or 16KB sizes.
+    read_code_memory(0x0000, 8, buf_0);
+    read_code_memory(0x2000, 8, buf_8k);  
+    read_code_memory(0x4000, 8, buf_16k); 
     
     bool isEmpty = true;
     for(int i=0; i<8; i++) {
         if(buf_0[i] != 0xFF) { isEmpty = false; break; }
     }
     
+    // If Flash is completely empty (all 0xFF), we can't detect aliasing reliably.
+    // Assume max size based on Chip ID.
     if(isEmpty) return max_size;
 
     if (memcmp(buf_0, buf_8k, 8) == 0 && memcmp(buf_0, buf_16k, 8) == 0) {
