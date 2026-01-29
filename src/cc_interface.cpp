@@ -205,18 +205,29 @@ void CC_interface::set_pc(uint16_t address)
 
 uint8_t CC_interface::clock_init()
 {
-  opcode(0x75, 0xc6, 0x00); // CLKCON
+  opcode(0x75, 0xc6, 0x00); // CLKCON CMD
   
-  // Safe Timeout
   unsigned long start = millis();
-  while (!(opcode(0xe5, 0xbe) & 0x40))
+  while (true)
   {
-    if (millis() - start > 200)
+    uint8_t status = opcode(0xe5, 0xbe); // Read SLEEP/CLKCON Status
+    
+    // FIX: If we read 0xFF, the bus is likely floating (not connected).
+    // This prevents false "Ready" states when the chip is not responding.
+    if (status == 0xFF) {
+       return 2; // Error: Bus floating / Chip not connected
+    }
+
+    // Bit 6 (0x40) must be set (Oscillator stable)
+    if (status & 0x40) {
+      return 0; // Success
+    }
+
+    if (millis() - start > 500) // Timeout increased to 500ms
     {
-      return 1;
+      return 1; // Timeout
     }
   }
-  return 0;
 }
 
 uint8_t CC_interface::write_code_memory(uint16_t address, uint8_t buffer[], int len)
@@ -416,21 +427,26 @@ void CC_interface::enable_cc_debug()
   {
     dd_direction = 1;
     pinMode(_DD_PIN, INPUT);
-    digitalWrite(_DD_PIN, HIGH);
+    digitalWrite(_DD_PIN, HIGH); // Pullup
   }
-  delay(5);
+  
+  delay(10); // Wait for stabilization
+
+  // Reset Sequence with relaxed timing for CC2531 (capacitor on reset line)
   digitalWrite(_RESET_PIN, LOW);
-  delay(2);
+  delay(20); // INCREASED: 2ms -> 20ms to discharge capacitor fully
+  
   digitalWrite(_CC_PIN, HIGH);
-  delayMicroseconds(5);
+  delayMicroseconds(20); // Slower clocking for stability
   digitalWrite(_CC_PIN, LOW);
-  delayMicroseconds(5);
+  delayMicroseconds(20);
   digitalWrite(_CC_PIN, HIGH);
-  delayMicroseconds(5);
+  delayMicroseconds(20);
   digitalWrite(_CC_PIN, LOW);
-  delay(2);
+  
+  delay(20); // Wait before releasing reset
   digitalWrite(_RESET_PIN, HIGH);
-  delay(2);
+  delay(100); // INCREASED: 2ms -> 100ms to let the chip wake up properly
 }
 
 void CC_interface::reset_cc()
@@ -459,21 +475,37 @@ uint8_t CC_interface::read_chip_info_byte(uint16_t offset)
 
 // Intelligent Size Detection (with Aliasing Check)
 uint32_t CC_interface::detect_flash_size() {
-    uint16_t raw_id = send_cc_cmd(0x68);
+    uint16_t raw_id = send_cc_cmd(0x68); // GET_CHIP_ID
+    
+    // FIX: Retry mechanism. If ID is 0x00 or 0xFF, communication might be unstable.
+    if (raw_id == 0x0000 || raw_id == 0xFFFF) {
+        // Try a quick re-init sequence (NOP) and read again
+        opcode(0x00); 
+        delay(10);
+        raw_id = send_cc_cmd(0x68);
+    }
+
     uint8_t chip_id = (raw_id >> 8) & 0xFF;
     
+    // Default fallback size
     uint32_t max_size = 32768; 
+    
+    // CC2530 (0xA5) or CC2531 (0xB5) usually have 256KB
     if (chip_id == 0xA5 || chip_id == 0xB5) { 
         max_size = 262144; 
+    }
+
+    // If Chip ID is still 0, we cannot reliably detect aliasing.
+    // Return default size to avoid false reads.
+    if (chip_id == 0x00) {
+        return 32768; 
     }
 
     uint8_t buf_0[8];
     uint8_t buf_8k[8];
     uint8_t buf_16k[8];
     
-    // FIX: Use read_code_memory (Flash) instead of read_xdata_memory (RAM)
-    // because RAM on CC2531 is only 8KB and will alias/wrap around, 
-    // causing false detection of 8KB or 16KB sizes.
+    // Read Flash memory to check for aliasing (mirrored memory banks)
     read_code_memory(0x0000, 8, buf_0);
     read_code_memory(0x2000, 8, buf_8k);  
     read_code_memory(0x4000, 8, buf_16k); 
