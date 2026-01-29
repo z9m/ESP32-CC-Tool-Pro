@@ -423,30 +423,25 @@ uint8_t CC_interface::cc_receive_byte()
 
 void CC_interface::enable_cc_debug()
 {
-  if (dd_direction == 0)
-  {
-    dd_direction = 1;
-    pinMode(_DD_PIN, INPUT);
-    digitalWrite(_DD_PIN, HIGH); // Pullup
-  }
-  
-  delay(10); // Wait for stabilization
-
-  // Reset Sequence with relaxed timing for CC2531 (capacitor on reset line)
+  // This sequence is based on RedBearLab/CCLoader and is known to be
+  // more compatible with CC2531 USB dongles.
+  // The key is a fast TWO-PULSE sequence on DC while RESET is low.
   digitalWrite(_RESET_PIN, LOW);
-  delay(20); // INCREASED: 2ms -> 20ms to discharge capacitor fully
+  delay(2); // Wait for reset to settle
   
-  digitalWrite(_CC_PIN, HIGH);
-  delayMicroseconds(20); // Slower clocking for stability
-  digitalWrite(_CC_PIN, LOW);
-  delayMicroseconds(20);
+  // Pulse 1
   digitalWrite(_CC_PIN, HIGH);
   delayMicroseconds(20);
   digitalWrite(_CC_PIN, LOW);
+  delayMicroseconds(20);
   
-  delay(20); // Wait before releasing reset
+  // Pulse 2
+  digitalWrite(_CC_PIN, HIGH);
+  delayMicroseconds(20);
+  digitalWrite(_CC_PIN, LOW);
+  
   digitalWrite(_RESET_PIN, HIGH);
-  delay(100); // INCREASED: 2ms -> 100ms to let the chip wake up properly
+  delay(2); // Wait for chip to wake up
 }
 
 void CC_interface::reset_cc()
