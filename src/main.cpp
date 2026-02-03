@@ -344,6 +344,8 @@ void setup() {
         if(len > 512) len = 512; // Limit
         
         uint8_t* buf = (uint8_t*)malloc(len);
+        if (!buf) { r->send(500, "text/plain", "Out of memory"); return; }
+
         cc.read_xdata_memory(addr, len, buf);
         
         String hex = "";
